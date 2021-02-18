@@ -49,7 +49,7 @@ def update_noip(myip, myddns):
         }
     url = f'https://{NOIP_USER}:{NOIP_PASS}@dynupdate.no-ip.com/nic/update?hostname={myddns}&myip={myip}'
     u = requests.get(url, headers=headers)
-    print(f'NOIP: {myddns} returned {u.content})
+    print(f'NOIP: {myddns} returned {u.content}')
 
 def main():
     pub_ip = get_public_address()
