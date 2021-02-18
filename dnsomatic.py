@@ -48,3 +48,4 @@ def main():
     priv_ip = get_private_address()
     print(f'My Public: {pub_ip} || My Private: {priv_ip}')
 
+main()
