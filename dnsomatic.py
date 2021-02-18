@@ -10,6 +10,11 @@ NOIP_PASS = os.getenv('NOIP_PASS')
 DNSO_USER = os.getenv('DNSO_USER')
 DNSO_PASS = os.getenv('DNSO_PASS')
 
+dns_pub = [
+    'deutmeyer.ddns.net',
+    'bdiggity.ddns.net'
+]
+
 def get_public_address():
     pub = requests.get('http://myip.dnsomatic.com/')
 
@@ -29,11 +34,14 @@ def get_private_address():
     priv = socket.gethostbyname(priv_h)
     return priv
 
-def update_dnsomatic():
+def update_dnsomatic(myip):
     headers = {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Cowpi v0.69 Boomala'
+        'Content-Type': 'application/json'
         }
+    url = f'https://{NOIP_USER}:{NOIP_PASS}@updates.dnsomatic.com/nic/update?hostname=Home&myip={myip}&wildcard=NOCHG&mx=NOCHG&backmx=NOCHG'
+    u = requests.get(url, headers=headers)
+    print(f'DNSOMATIC: {u.content}')
+
 def update_noip(myip, myddns):
     headers = {
         'Content-Type': 'application/json',
@@ -41,11 +49,16 @@ def update_noip(myip, myddns):
         }
     url = f'https://{NOIP_USER}:{NOIP_PASS}@dynupdate.no-ip.com/nic/update?hostname={myddns}&myip={myip}'
     u = requests.get(url, headers=headers)
-    print(u.content)
+    print(f'NOIP: {myddns} returned {u.content})
 
 def main():
     pub_ip = get_public_address()
     priv_ip = get_private_address()
     print(f'My Public: {pub_ip} || My Private: {priv_ip}')
+
+    for pub in dns_pub:
+        update_noip(pub_ip, pub)
+
+    update_noip (priv_ip, 'boomala.ddns.net')
 
 main()
