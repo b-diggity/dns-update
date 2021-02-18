@@ -38,7 +38,7 @@ def update_dnsomatic(myip):
     headers = {
         'Content-Type': 'application/json'
         }
-    url = f'https://{NOIP_USER}:{NOIP_PASS}@updates.dnsomatic.com/nic/update?hostname=Home&myip={myip}&wildcard=NOCHG&mx=NOCHG&backmx=NOCHG'
+    url = f'https://{DNSO_USER}:{DNSO_PASS}@updates.dnsomatic.com/nic/update?hostname=Home&myip={myip}&wildcard=NOCHG&mx=NOCHG&backmx=NOCHG'
     u = requests.get(url, headers=headers)
     print(f'DNSOMATIC: {u.content}')
 
@@ -56,6 +56,8 @@ def main():
     priv_ip = get_private_address()
     print(f'My Public: {pub_ip} || My Private: {priv_ip}')
 
+    update_dnsomatic(pub_ip)
+    
     for pub in dns_pub:
         update_noip(pub_ip, pub)
 
