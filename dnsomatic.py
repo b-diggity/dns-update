@@ -30,11 +30,11 @@ def get_private_address():
     priv = socket.gethostbyname(priv_h)
     return priv
 
-def update_dnsomatic(myip):
+def update_dnsomatic(myip, site):
     headers = {
         'Content-Type': 'application/json'
         }
-    url = f'https://{DNSO_USER}:{DNSO_PASS}@updates.dnsomatic.com/nic/update?hostname=Home&myip={myip}&wildcard=NOCHG&mx=NOCHG&backmx=NOCHG'
+    url = f'https://{DNSO_USER}:{DNSO_PASS}@updates.dnsomatic.com/nic/update?hostname={site}&myip={myip}&wildcard=NOCHG&mx=NOCHG&backmx=NOCHG'
     u = requests.get(url, headers=headers)
     print(f'DNSOMATIC: {u.content}')
 
@@ -55,13 +55,27 @@ def main():
     data_dir = '/opt/scripts/data'
     with open(f'{data_dir}/dns.json') as dj:
         dns_data = json.load(dj)
-    
-    update_dnsomatic(pub_ip)
-    
-    for pub in dns_data['public']:
-        update_noip(pub_ip, pub['dns'])
 
-    for p_rivate in dns_data['private']:
-        update_noip (priv_ip, p_rivate['dns'])
+    if dns_data['dnsomatic'] == 'true':
+        if pub_ip != dns_data['dnsomatic_ip']:
+            update_dnsomatic(pub_ip, dns_data['dnsomatic_name'])
+            dns_data['dnsomatic_ip'] = pub_ip
+        else:
+            print('No updated needed for DNSOMATIC')
+    
+    for d in dns_data['noip']:
+        if 'private' in d and d['private'] == 'true':
+            u_ip=priv_ip
+        else:
+            u_ip=pub_ip
+        
+        if u_ip != d['ip']:
+            update_noip(u_ip, d['dns'])
+            d['ip'] = u_ip
+        else:
+            print(f'No udpate needed for {d["dns"]}')
+
+    with open(f'{data_dir}/dns.json', 'w') as dj:
+        json.dump(dns_data, dj)       
 
 main()
