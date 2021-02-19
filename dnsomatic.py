@@ -10,20 +10,21 @@ NOIP_PASS = os.getenv('NOIP_PASS')
 DNSO_USER = os.getenv('DNSO_USER')
 DNSO_PASS = os.getenv('DNSO_PASS')
 
-dns_pub = [
-    'deutmeyer.ddns.net',
-    'bdiggity.ddns.net'
-]
+# dns_pub = [
+#     'deutmeyer.ddns.net',
+#     'bdiggity.ddns.net'
+# ]
 
 def get_public_address():
     pub = requests.get('http://myip.dnsomatic.com/')
 
-    if re.match('[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}', pub.text) is not None:
+    ip_r = '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'  # pylint: disable=anomalous-backslash-in-string
+    if re.match(ip_r, pub.text) is not None:
         return pub.text
     else:
         sleep(5)
         pub = requests.get('http://myip.dnsomatic.com/')
-        if re.match('[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}', pub.text) is not None:
+        if re.match(ip_r, pub.text) is not None:
             return pub.text
         else:
             print(f'Failure in getting public IP:\n{pub.text}')
@@ -56,10 +57,14 @@ def main():
     priv_ip = get_private_address()
     print(f'My Public: {pub_ip} || My Private: {priv_ip}')
 
+    data_dir = '/opt/scripts/data'
+    with open(f'{data_dir}/dns.json') as dj:
+        dns_data = json.load(dj)
+    
     update_dnsomatic(pub_ip)
     
-    for pub in dns_pub:
-        update_noip(pub_ip, pub)
+    for pub in dns_data('public'):
+        update_noip(pub_ip, pub.get('dns'))
 
     update_noip (priv_ip, 'boomala.ddns.net')
 
