@@ -38,6 +38,8 @@ def update_dnsomatic(myip, site):
     u = requests.get(url, headers=headers)
     print(f'DNSOMATIC: {u.content}')
 
+    return u.content
+
 def update_noip(myip, myddns):
     headers = {
         'Content-Type': 'application/json',
@@ -46,6 +48,8 @@ def update_noip(myip, myddns):
     url = f'https://{NOIP_USER}:{NOIP_PASS}@dynupdate.no-ip.com/nic/update?hostname={myddns}&myip={myip}'
     u = requests.get(url, headers=headers)
     print(f'NOIP: {myddns} returned {u.content}')
+
+    return u.content
 
 def main():
     pub_ip = get_public_address()
@@ -58,8 +62,10 @@ def main():
 
     if dns_data['dnsomatic'] == 'true':
         if pub_ip != dns_data['dnsomatic_ip']:
-            update_dnsomatic(pub_ip, dns_data['dnsomatic_name'])
-            dns_data['dnsomatic_ip'] = pub_ip
+            m = update_dnsomatic(pub_ip, dns_data['dnsomatic_name'])
+
+            if b'good' in m or b'noch' in m:
+                dns_data['dnsomatic_ip'] = pub_ip
         else:
             print('No updated needed for DNSOMATIC')
     
@@ -70,8 +76,9 @@ def main():
             u_ip=pub_ip
         
         if u_ip != d['ip']:
-            update_noip(u_ip, d['dns'])
-            d['ip'] = u_ip
+            m = update_noip(u_ip, d['dns'])
+            if b'good' in m or b'noch' in m:
+                d['ip'] = u_ip
         else:
             print(f'No udpate needed for {d["dns"]}')
 
