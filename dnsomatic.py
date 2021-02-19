@@ -10,11 +10,6 @@ NOIP_PASS = os.getenv('NOIP_PASS')
 DNSO_USER = os.getenv('DNSO_USER')
 DNSO_PASS = os.getenv('DNSO_PASS')
 
-# dns_pub = [
-#     'deutmeyer.ddns.net',
-#     'bdiggity.ddns.net'
-# ]
-
 def get_public_address():
     pub = requests.get('http://myip.dnsomatic.com/')
 
@@ -63,9 +58,10 @@ def main():
     
     update_dnsomatic(pub_ip)
     
-    for pub in dns_data('public'):
-        update_noip(pub_ip, pub.get('dns'))
+    for pub in dns_data['public']:
+        update_noip(pub_ip, pub['dns'])
 
-    update_noip (priv_ip, 'boomala.ddns.net')
+    for p_rivate in dns_data['private']:
+        update_noip (priv_ip, p_rivate['dns'])
 
 main()
