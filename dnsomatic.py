@@ -43,7 +43,7 @@ def update_dnsomatic(myip, site):
 def update_noip(myip, myddns):
     headers = {
         'Content-Type': 'application/json',
-        'User-Agent': 'Cowpi v0.69 Boomala'
+        'User-Agent': 'Cowpi v0.69 ANF'
         }
     url = f'https://{NOIP_USER}:{NOIP_PASS}@dynupdate.no-ip.com/nic/update?hostname={myddns}&myip={myip}'
     u = requests.get(url, headers=headers)

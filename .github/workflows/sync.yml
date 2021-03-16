@@ -1,0 +1,12 @@
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  sync:
+    if: github.event.pull_request.merged == true
+    name: Sync Pi
+    runs-on: [self-hosted, ubuntu, pi]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
