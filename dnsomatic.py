@@ -5,7 +5,7 @@ import re
 from time import sleep
 import os
 import sys
-# pip install --upgrade git+https://github.com/b-diggity/utilities.git@v0.0.2
+# pip install --upgrade git+https://github.com/b-diggity/utilities.git@v0.0.3
 from utilities.util import email_outlook as send_mail
 
 NOIP_USER = os.getenv('NOIP_USER')
