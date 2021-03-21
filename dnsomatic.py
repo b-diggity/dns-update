@@ -12,6 +12,8 @@ NOIP_USER = os.getenv('NOIP_USER')
 NOIP_PASS = os.getenv('NOIP_PASS')
 DNSO_USER = os.getenv('DNSO_USER')
 DNSO_PASS = os.getenv('DNSO_PASS')
+mail_user = os.getenv('MAIL_USER_OUTLOOK')
+mail_key = os.getenv('MAIL_PASS_OUTLOOK')
 
 def get_public_address():
     pub = requests.get('http://myip.dnsomatic.com/')
@@ -74,7 +76,12 @@ def main():
                 print('Alert')
                 raw_e = m.decode('utf-8').rstrip()
                 err_m = f'DNSOMATIC {dnsomatic_name} failed to udpate to IP {pub_ip}.  Error: {raw_e}'
-                send_mail(subject='DNSOMATIC Update Failure', message=err_m)
+                send_mail(
+                    subject='DNSOMATIC Update Failure',
+                    message=err_m,
+                    username=mail_user,
+                    password=mail_key
+                )
         else:
             print('No update needed for DNSOMATIC')
     
@@ -94,7 +101,12 @@ def main():
                 print('Alert')
                 raw_e = m.decode('utf-8').rstrip()
                 err_m=f'NOIP {u_name} failed to udpate to IP {u_ip}.  Error: {raw_e}'
-                send_mail(subject=f'NOIP Update Failure for {u_name}', message=err_m)
+                send_mail(
+                    subject=f'NOIP Update Failure for {u_name}',
+                    message=err_m,
+                    username=mail_user,
+                    password=mail_key
+                )
         else:
             print(f'No udpate needed for {u_name}')
 
