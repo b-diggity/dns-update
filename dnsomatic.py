@@ -64,17 +64,19 @@ def main():
         dns_data = json.load(dj)
 
     if dns_data['dnsomatic'] == 'true':
+        dnsomatic_name = dns_data['dnsomatic_name']
         if pub_ip != dns_data['dnsomatic_ip']:
-            m = update_dnsomatic(pub_ip, dns_data['dnsomatic_name'])
+            m = update_dnsomatic(pub_ip, dnsomatic_name)
 
             if b'good' in m or b'noch' in m:
                 dns_data['dnsomatic_ip'] = pub_ip
             else:
                 print('Alert')
-                err_m=f'DNSOMATIC {dnsomatic_name} failed to udpate to IP {dnsomatic_ip}.  Error: {str(m.content)}'
+                raw_e = m.decode('utf-8').rstrip()
+                err_m = f'DNSOMATIC {dnsomatic_name} failed to udpate to IP {pub_ip}.  Error: {raw_e}'
                 send_mail(subject='DNSOMATIC Update Failure', message=err_m)
         else:
-            print('No updated needed for DNSOMATIC')
+            print('No update needed for DNSOMATIC')
     
     for d in dns_data['noip']:
         if 'private' in d and d['private'] == 'true':
@@ -82,14 +84,16 @@ def main():
         else:
             u_ip=pub_ip
         
+        u_name = d['dns']
+
         if u_ip != d['ip']:
-            u_name = d['dns']
             m = update_noip(u_ip, u_name)
             if b'good' in m or b'noch' in m:
                 d['ip'] = u_ip
             else:
                 print('Alert')
-                err_m=f'NOIP {u_name} failed to udpate to IP {u_ip}.  Error: {str(m.content)}'
+                raw_e = m.decode('utf-8').rstrip()
+                err_m=f'NOIP {u_name} failed to udpate to IP {u_ip}.  Error: {raw_e}'
                 send_mail(subject=f'NOIP Update Failure for {u_name}', message=err_m)
         else:
             print(f'No udpate needed for {u_name}')
