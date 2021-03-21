@@ -4,6 +4,9 @@ import socket
 import re
 from time import sleep
 import os
+import sys
+# pip install --upgrade git+https://github.com/b-diggity/utilities.git@v0.0.1
+from utilities.util import email_outlook as send_mail
 
 NOIP_USER = os.getenv('NOIP_USER')
 NOIP_PASS = os.getenv('NOIP_PASS')
@@ -66,6 +69,10 @@ def main():
 
             if b'good' in m or b'noch' in m:
                 dns_data['dnsomatic_ip'] = pub_ip
+            else:
+                print('Alert')
+                err_m=f'DNSOMATIC {dnsomatic_name} failed to udpate to IP {dnsomatic_ip}.  Error: {str(m.content)}'
+                send_mail(subject='DNSOMATIC Update Failure', message=err_m)
         else:
             print('No updated needed for DNSOMATIC')
     
@@ -76,11 +83,16 @@ def main():
             u_ip=pub_ip
         
         if u_ip != d['ip']:
-            m = update_noip(u_ip, d['dns'])
+            u_name = d['dns']
+            m = update_noip(u_ip, u_name)
             if b'good' in m or b'noch' in m:
                 d['ip'] = u_ip
+            else:
+                print('Alert')
+                err_m=f'NOIP {u_name} failed to udpate to IP {u_ip}.  Error: {str(m.content)}'
+                send_mail(subject=f'NOIP Update Failure for {u_name}', message=err_m)
         else:
-            print(f'No udpate needed for {d["dns"]}')
+            print(f'No udpate needed for {u_name}')
 
     with open(f'{data_dir}/dns.json', 'w') as dj:
         json.dump(dns_data, dj)       
