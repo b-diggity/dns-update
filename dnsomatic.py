@@ -1,49 +1,53 @@
-import json
-import requests
-import socket
-import re
+from json import dump, load
+from requests import get
+from socket import gethostname, gethostbyname
+from re import match
 from time import sleep
-import os
-import sys
+from os import getenv
 # pip install --upgrade git+https://github.com/b-diggity/utilities.git@v0.0.3
 from utilities.util import email_outlook as send_mail
 
-NOIP_USER = os.getenv('NOIP_USER')
-NOIP_PASS = os.getenv('NOIP_PASS')
-DNSO_USER = os.getenv('DNSO_USER')
-DNSO_PASS = os.getenv('DNSO_PASS')
-mail_user = os.getenv('MAIL_USER_OUTLOOK')
-mail_key = os.getenv('MAIL_PASS_OUTLOOK')
+NOIP_USER = getenv('NOIP_USER')
+NOIP_PASS = getenv('NOIP_PASS')
+DNSO_USER = getenv('DNSO_USER')
+DNSO_PASS = getenv('DNSO_PASS')
+MAIL_USER = getenv('MAIL_USER_OUTLOOK')
+MAIL_KEY = getenv('MAIL_PASS_OUTLOOK')
+DATA_DIR = getenv('JSON_DIR')
+
 
 def get_public_address():
-    pub = requests.get('http://myip.dnsomatic.com/')
+    pub = get('http://myip.dnsomatic.com/')
 
-    ip_r = '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'  # pylint: disable=anomalous-backslash-in-string
-    if re.match(ip_r, pub.text) is not None:
+    ip_r = r'[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'
+    if match(ip_r, pub.text) is not None:
         return pub.text
     else:
         sleep(5)
-        pub = requests.get('http://myip.dnsomatic.com/')
-        if re.match(ip_r, pub.text) is not None:
+        pub = get('http://myip.dnsomatic.com/')
+        if match(ip_r, pub.text) is not None:
             return pub.text
         else:
             print(f'Failure in getting public IP:\n{pub.text}')
             exit(1)
 
+
 def get_private_address():
-    priv_h = socket.gethostname()
-    priv = socket.gethostbyname(priv_h)
+    priv_h = gethostname()
+    priv = gethostbyname(priv_h)
     return priv
+
 
 def update_dnsomatic(myip, site):
     headers = {
         'Content-Type': 'application/json'
         }
     url = f'https://{DNSO_USER}:{DNSO_PASS}@updates.dnsomatic.com/nic/update?hostname={site}&myip={myip}&wildcard=NOCHG&mx=NOCHG&backmx=NOCHG'
-    u = requests.get(url, headers=headers)
+    u = get(url, headers=headers)
     print(f'DNSOMATIC: {u.content}')
 
     return u.content
+
 
 def update_noip(myip, myddns):
     headers = {
@@ -51,19 +55,19 @@ def update_noip(myip, myddns):
         'User-Agent': 'Cowpi v0.69 ANF'
         }
     url = f'https://{NOIP_USER}:{NOIP_PASS}@dynupdate.no-ip.com/nic/update?hostname={myddns}&myip={myip}'
-    u = requests.get(url, headers=headers)
+    u = get(url, headers=headers)
     print(f'NOIP: {myddns} returned {u.content}')
 
     return u.content
 
-def main():
+
+if __name__ == "__main__":
     pub_ip = get_public_address()
     priv_ip = get_private_address()
     print(f'My Public: {pub_ip} || My Private: {priv_ip}')
 
-    data_dir = '/opt/scripts/data'
-    with open(f'{data_dir}/dns.json') as dj:
-        dns_data = json.load(dj)
+    with open(f'{DATA_DIR}/dns.json') as dj:
+        dns_data = load(dj)
 
     if dns_data['dnsomatic'] == 'true':
         dnsomatic_name = dns_data['dnsomatic_name']
@@ -79,8 +83,8 @@ def main():
                 send_mail(
                     subject='DNSOMATIC Update Failure',
                     message=err_m,
-                    username=mail_user,
-                    password=mail_key
+                    username=MAIL_USER,
+                    password=MAIL_KEY
                 )
         else:
             print('No update needed for DNSOMATIC')
@@ -104,13 +108,11 @@ def main():
                 send_mail(
                     subject=f'NOIP Update Failure for {u_name}',
                     message=err_m,
-                    username=mail_user,
-                    password=mail_key
+                    username=MAIL_USER,
+                    password=MAIL_KEY
                 )
         else:
             print(f'No udpate needed for {u_name}')
 
-    with open(f'{data_dir}/dns.json', 'w') as dj:
-        json.dump(dns_data, dj)       
-
-main()
+    with open(f'{DATA_DIR}/dns.json', 'w') as dj:
+        dump(dns_data, dj)       
