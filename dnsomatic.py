@@ -5,7 +5,7 @@ from re import match
 from time import sleep
 from os import getenv
 from sys import argv, exit
-from getopt import getopt
+from getopt import getopt, error
 # pip install --upgrade git+https://github.com/b-diggity/utilities.git@v0.0.3
 from utilities.util import email_outlook as send_mail
 
@@ -23,10 +23,11 @@ args = args_full[1:]
 
 short_opt = "v"
 long_opt = ["verbose"]
+verbose = False
 
 try:
-    arguments, values = getopt.getopt(args_full, short_opt, long_opt)
-except getopt.error as err:
+    arguments, values = getopt(args, short_opt, long_opt)
+except error as err:
     print(str(err))
     exit(2)
 
