@@ -71,24 +71,17 @@ if __name__ == "__main__":
     dnsomatic = loads(DNS_UPDATES).get('dnsomatic')
     pub_ip = get_public_address()
     priv_ip = get_private_address()
-
-    if noip_public:
-        print(f'NOIP Public Updates for {noip_public}')
     
-    if noip_private:
-        print(f'My Public: {pub_ip} || My Private: {priv_ip}')
+    print(f'My Public: {pub_ip} || My Private: {priv_ip}')
 
     try:
         with open(f'{DATA_DIR}/dns.json') as dj:
             dns_data = load(dj)
-        print('file opened')
     except:
-        print('File not present')
         dns_data = loads('{}')
 
     if dnsomatic:
         for dns_site in dnsomatic:
-            print(f'dns site: {dns_site}')
             dnsomatic_ip = ''
 
             if dns_data.get('dnsomatic') is not None:
@@ -117,6 +110,7 @@ if __name__ == "__main__":
                 print('No update needed for DNSOMATIC')
     
     if noip_public:
+        print(f'NOIP Public Updates for {noip_public}')
         for dns_public in noip_public:
             print(dns_public)
             noip_ip = ''
@@ -145,6 +139,7 @@ if __name__ == "__main__":
                 print(f'No udpate needed for {dns_public}')
 
     if noip_private:
+        print(f'NOIP Private Updates for {noip_private}')
         for dns_private in noip_private:
             print(dns_private)
             noip_ip = ''
