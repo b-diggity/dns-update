@@ -81,6 +81,7 @@ if __name__ == "__main__":
         dns_data = loads('{}')
 
     if dnsomatic:
+        print(f'DNSOMATIC Updates for {dnsomatic}')
         for dns_site in dnsomatic:
             dnsomatic_ip = ''
 
@@ -108,6 +109,7 @@ if __name__ == "__main__":
                     )
             else:
                 print('No update needed for DNSOMATIC')
+                dnsomatic_list.append({dns_site: pub_ip})
     
     if noip_public:
         print(f'NOIP Public Updates for {noip_public}')
@@ -137,6 +139,7 @@ if __name__ == "__main__":
                     )
             else:
                 print(f'No udpate needed for {dns_public}')
+                noip_list.append({dns_public: pub_ip})
 
     if noip_private:
         print(f'NOIP Private Updates for {noip_private}')
@@ -166,11 +169,14 @@ if __name__ == "__main__":
                     )
             else:
                 print(f'No udpate needed for {dns_private}')
+                noip_list.append({dns_private: priv_ip})
 
     dns_json = {
         'noip': noip_list,
         'dnsomatic': dnsomatic_list
     }
+
+    print(dns_json)
     
     with open(f'{DATA_DIR}/dns.json', 'w') as dj:
         dump(dns_json, dj)       
