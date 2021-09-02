@@ -84,7 +84,7 @@ if __name__ == "__main__":
         print('file opened')
     except:
         print('File not present')
-        dns_data = '{}'
+        dns_data = loads('{}')
 
     if dnsomatic:
         
@@ -92,9 +92,10 @@ if __name__ == "__main__":
             print(f'dns site: {dns_site}')
             dnsomatic_ip = ""
 
-            print(loads(dns_data).get('dnsomatic'))
-            if loads(dns_data).get('dnsomatic') is not None:
-                for item in loads(dns_data).get('dnsomatic'):
+            print(dns_data)
+            print(dns_data.get('dnsomatic'))
+            if dns_data.get('dnsomatic') is not None:
+                for item in dns_data.get('dnsomatic'):
                     for k in item:
                         if item[k] == dns_site:
                             dnsomatic_ip = item[k]
