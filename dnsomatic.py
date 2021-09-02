@@ -4,6 +4,8 @@ from socket import gethostname, gethostbyname
 from re import match
 from time import sleep
 from os import getenv
+from sys import argv, exit
+from getopt import getopt, error
 # pip install --upgrade git+https://github.com/b-diggity/utilities.git@v0.0.3
 from utilities.util import email_outlook as send_mail
 
@@ -15,6 +17,23 @@ MAIL_USER = getenv('MAIL_USER_OUTLOOK')
 MAIL_KEY = getenv('MAIL_PASS_OUTLOOK')
 DATA_DIR = getenv('JSON_DIR')
 DNS_UPDATES = getenv('DNS_UPDATES')
+
+args_full = argv
+args = args_full[1:]
+
+short_opt = "v"
+long_opt = ["verbose"]
+verbose = False
+
+try:
+    arguments, values = getopt(args, short_opt, long_opt)
+except error as err:
+    print(str(err))
+    exit(2)
+
+for cur_arg, cur_val in arguments:
+    if cur_arg in ("-v", "--verbose"):
+        verbose = True
 
 
 def get_public_address():
@@ -29,7 +48,8 @@ def get_public_address():
         if match(ip_r, pub.text) is not None:
             return pub.text
         else:
-            print(f'Failure in getting public IP:\n{pub.text}')
+            if verbose:
+                print(f'Failure in getting public IP:\n{pub.text}')
             exit(1)
 
 
@@ -45,7 +65,8 @@ def update_dnsomatic(myip, site):
         }
     url = f'https://{DNSO_USER}:{DNSO_PASS}@updates.dnsomatic.com/nic/update?hostname={site}&myip={myip}&wildcard=NOCHG&mx=NOCHG&backmx=NOCHG'
     u = get(url, headers=headers)
-    print(f'DNSOMATIC: {u.content}')
+    if verbose:
+        print(f'DNSOMATIC: {u.content}')
 
     return u.content
 
@@ -57,7 +78,8 @@ def update_noip(myip, myddns):
         }
     url = f'https://{NOIP_USER}:{NOIP_PASS}@dynupdate.no-ip.com/nic/update?hostname={myddns}&myip={myip}'
     u = get(url, headers=headers)
-    print(f'NOIP: {myddns} returned {u.content}')
+    if verbose:
+        print(f'NOIP: {myddns} returned {u.content}')
 
     return u.content
 
@@ -72,7 +94,8 @@ if __name__ == "__main__":
     pub_ip = get_public_address()
     priv_ip = get_private_address()
     
-    print(f'My Public: {pub_ip} || My Private: {priv_ip}')
+    if verbose:
+        print(f'My Public: {pub_ip} || My Private: {priv_ip}')
 
     try:
         with open(f'{DATA_DIR}/dns.json') as dj:
@@ -81,7 +104,9 @@ if __name__ == "__main__":
         dns_data = loads('{}')
 
     if dnsomatic:
-        print(f'DNSOMATIC Updates for {dnsomatic}')
+        print(f'Processing DNSOMATIC Updates')
+        if verbose:
+            print(f'List of updates: {dnsomatic}')
         for dns_site in dnsomatic:
             dnsomatic_ip = ''
 
@@ -97,10 +122,12 @@ if __name__ == "__main__":
                 if b'good' in m or b'noch' in m:
                     dnsomatic_list.append({dns_site: pub_ip})
                 else:
-                    print('Alert')
+                    print('Alert in DNSOMATIC')
                     raw_e = m.decode('utf-8').rstrip()
                     err_m = f'DNSOMATIC {dns_site} failed to udpate to IP {pub_ip}.  Error: {raw_e}'
-                    print(err_m)
+                    if verbose:
+                        print(err_m)
+
                     send_mail(
                         subject='DNSOMATIC Update Failure',
                         message=err_m,
@@ -108,13 +135,19 @@ if __name__ == "__main__":
                         password=MAIL_KEY
                     )
             else:
-                print('No update needed for DNSOMATIC')
+                if verbose:
+                    print(f'No update needed for DNSOMATIC {dns_site}')
                 dnsomatic_list.append({dns_site: pub_ip})
     
     if noip_public:
-        print(f'NOIP Public Updates for {noip_public}')
+        print(f'Processing NOIP Public Updates')
+        if verbose:
+            print(f'NOIP Public Update List {noip_public}')
+
         for dns_public in noip_public:
-            print(dns_public)
+            if verbose:
+                print(dns_public)
+
             noip_ip = ''
 
             if dns_data.get('noip') is not None:
@@ -128,7 +161,7 @@ if __name__ == "__main__":
                 if b'good' in m or b'noch' in m:
                     noip_list.append({dns_public: pub_ip})
                 else:
-                    print('Alert')
+                    print('Alert in NOIP Public')
                     raw_e = m.decode('utf-8').rstrip()
                     err_m=f'NOIP {dns_public} failed to udpate to IP {pub_ip}.  Error: {raw_e}'
                     send_mail(
@@ -138,13 +171,19 @@ if __name__ == "__main__":
                         password=MAIL_KEY
                     )
             else:
-                print(f'No udpate needed for {dns_public}')
+                if verbose:
+                    print(f'No udpate needed for {dns_public}')
                 noip_list.append({dns_public: pub_ip})
 
     if noip_private:
-        print(f'NOIP Private Updates for {noip_private}')
+        print(f'Processing NOIP Private Updates')
+        if verbose:
+            print(f'NOIP Private Updates List: {noip_private}')
+
         for dns_private in noip_private:
-            print(dns_private)
+            if verbose:
+                print(dns_private)
+
             noip_ip = ''
 
             if dns_data.get('noip') is not None:
@@ -158,7 +197,7 @@ if __name__ == "__main__":
                 if b'good' in m or b'noch' in m:
                     noip_list.append({dns_private: priv_ip})
                 else:
-                    print('Alert')
+                    print('Alert in NOIP Private')
                     raw_e = m.decode('utf-8').rstrip()
                     err_m=f'NOIP {dns_private} failed to udpate to IP {priv_ip}.  Error: {raw_e}'
                     send_mail(
@@ -168,7 +207,8 @@ if __name__ == "__main__":
                         password=MAIL_KEY
                     )
             else:
-                print(f'No udpate needed for {dns_private}')
+                if verbose:
+                    print(f'No udpate needed for {dns_private}')
                 noip_list.append({dns_private: priv_ip})
 
     dns_json = {
@@ -176,7 +216,8 @@ if __name__ == "__main__":
         'dnsomatic': dnsomatic_list
     }
 
-    print(dns_json)
+    if verbose:
+        print(dns_json)
     
     with open(f'{DATA_DIR}/dns.json', 'w') as dj:
         dump(dns_json, dj)       
