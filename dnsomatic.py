@@ -1,4 +1,4 @@
-from json import dump, load
+from json import dump, load, loads
 from requests import get
 from socket import gethostname, gethostbyname
 from re import match
@@ -14,6 +14,7 @@ DNSO_PASS = getenv('DNSO_PASS')
 MAIL_USER = getenv('MAIL_USER_OUTLOOK')
 MAIL_KEY = getenv('MAIL_PASS_OUTLOOK')
 DATA_DIR = getenv('JSON_DIR')
+DNS_UPDATES = getenv('DNS_UPDATES')
 
 
 def get_public_address():
@@ -62,57 +63,120 @@ def update_noip(myip, myddns):
 
 
 if __name__ == "__main__":
+    noip_list = []
+    dnsomatic_list = []
+
+    noip_public = loads(DNS_UPDATES).get('noip').get('public')
+    noip_private = loads(DNS_UPDATES).get('noip').get('private')
+    dnsomatic = loads(DNS_UPDATES).get('dnsomatic')
     pub_ip = get_public_address()
     priv_ip = get_private_address()
+    
     print(f'My Public: {pub_ip} || My Private: {priv_ip}')
 
-    with open(f'{DATA_DIR}/dns.json') as dj:
-        dns_data = load(dj)
+    try:
+        with open(f'{DATA_DIR}/dns.json') as dj:
+            dns_data = load(dj)
+    except:
+        dns_data = loads('{}')
 
-    if dns_data['dnsomatic'] == 'true':
-        dnsomatic_name = dns_data['dnsomatic_name']
-        if pub_ip != dns_data['dnsomatic_ip']:
-            m = update_dnsomatic(pub_ip, dnsomatic_name)
+    if dnsomatic:
+        print(f'DNSOMATIC Updates for {dnsomatic}')
+        for dns_site in dnsomatic:
+            dnsomatic_ip = ''
 
-            if b'good' in m or b'noch' in m:
-                dns_data['dnsomatic_ip'] = pub_ip
+            if dns_data.get('dnsomatic') is not None:
+                for item in dns_data.get('dnsomatic'):
+                    for k in item:
+                        if k == dns_site:
+                            dnsomatic_ip = item[k]
+
+            if pub_ip != dnsomatic_ip:
+                m = update_dnsomatic(pub_ip, dns_site)
+
+                if b'good' in m or b'noch' in m:
+                    dnsomatic_list.append({dns_site: pub_ip})
+                else:
+                    print('Alert')
+                    raw_e = m.decode('utf-8').rstrip()
+                    err_m = f'DNSOMATIC {dns_site} failed to udpate to IP {pub_ip}.  Error: {raw_e}'
+                    print(err_m)
+                    send_mail(
+                        subject='DNSOMATIC Update Failure',
+                        message=err_m,
+                        username=MAIL_USER,
+                        password=MAIL_KEY
+                    )
             else:
-                print('Alert')
-                raw_e = m.decode('utf-8').rstrip()
-                err_m = f'DNSOMATIC {dnsomatic_name} failed to udpate to IP {pub_ip}.  Error: {raw_e}'
-                send_mail(
-                    subject='DNSOMATIC Update Failure',
-                    message=err_m,
-                    username=MAIL_USER,
-                    password=MAIL_KEY
-                )
-        else:
-            print('No update needed for DNSOMATIC')
+                print('No update needed for DNSOMATIC')
+                dnsomatic_list.append({dns_site: pub_ip})
     
-    for d in dns_data['noip']:
-        if 'private' in d and d['private'] == 'true':
-            u_ip=priv_ip
-        else:
-            u_ip=pub_ip
-        
-        u_name = d['dns']
+    if noip_public:
+        print(f'NOIP Public Updates for {noip_public}')
+        for dns_public in noip_public:
+            print(dns_public)
+            noip_ip = ''
 
-        if u_ip != d['ip']:
-            m = update_noip(u_ip, u_name)
-            if b'good' in m or b'noch' in m:
-                d['ip'] = u_ip
+            if dns_data.get('noip') is not None:
+                for item in dns_data.get('noip'):
+                    for k in item:
+                        if k == dns_public:
+                            noip_ip = item[k]
+
+            if noip_ip != pub_ip:
+                m = update_noip(pub_ip, dns_public)
+                if b'good' in m or b'noch' in m:
+                    noip_list.append({dns_public: pub_ip})
+                else:
+                    print('Alert')
+                    raw_e = m.decode('utf-8').rstrip()
+                    err_m=f'NOIP {dns_public} failed to udpate to IP {pub_ip}.  Error: {raw_e}'
+                    send_mail(
+                        subject=f'NOIP Update Failure for {dns_public}',
+                        message=err_m,
+                        username=MAIL_USER,
+                        password=MAIL_KEY
+                    )
             else:
-                print('Alert')
-                raw_e = m.decode('utf-8').rstrip()
-                err_m=f'NOIP {u_name} failed to udpate to IP {u_ip}.  Error: {raw_e}'
-                send_mail(
-                    subject=f'NOIP Update Failure for {u_name}',
-                    message=err_m,
-                    username=MAIL_USER,
-                    password=MAIL_KEY
-                )
-        else:
-            print(f'No udpate needed for {u_name}')
+                print(f'No udpate needed for {dns_public}')
+                noip_list.append({dns_public: pub_ip})
 
+    if noip_private:
+        print(f'NOIP Private Updates for {noip_private}')
+        for dns_private in noip_private:
+            print(dns_private)
+            noip_ip = ''
+
+            if dns_data.get('noip') is not None:
+                for item in dns_data.get('noip'):
+                    for k in item:
+                        if k == dns_private:
+                            noip_ip = item[k]
+
+            if noip_ip != priv_ip:
+                m = update_noip(priv_ip, dns_private)
+                if b'good' in m or b'noch' in m:
+                    noip_list.append({dns_private: priv_ip})
+                else:
+                    print('Alert')
+                    raw_e = m.decode('utf-8').rstrip()
+                    err_m=f'NOIP {dns_private} failed to udpate to IP {priv_ip}.  Error: {raw_e}'
+                    send_mail(
+                        subject=f'NOIP Update Failure for {dns_private}',
+                        message=err_m,
+                        username=MAIL_USER,
+                        password=MAIL_KEY
+                    )
+            else:
+                print(f'No udpate needed for {dns_private}')
+                noip_list.append({dns_private: priv_ip})
+
+    dns_json = {
+        'noip': noip_list,
+        'dnsomatic': dnsomatic_list
+    }
+
+    print(dns_json)
+    
     with open(f'{DATA_DIR}/dns.json', 'w') as dj:
-        dump(dns_data, dj)       
+        dump(dns_json, dj)       
