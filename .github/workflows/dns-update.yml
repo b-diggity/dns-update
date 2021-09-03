@@ -19,7 +19,6 @@ jobs:
           DNSO_PASS: ${{ secrets.DNSO_PASS }}
           MAIL_USER_OUTLOOK: ${{ secrets.MAIL_USER_OUTLOOK }}
           MAIL_PASS_OUTLOOK: ${{ secrets.MAIL_PASS_OUTLOOK }}
-          JSON_DIR: $GITHUB_WORKSPACE/../..
           DNS_UPDATES: ${{ secrets.DNS_UPDATES }}
         run: |
           python3 dnsomatic.py

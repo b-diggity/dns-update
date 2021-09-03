@@ -18,7 +18,7 @@ MAIL_KEY = getenv('MAIL_PASS_OUTLOOK')
 WORKSPACE = getenv('GITHUB_WORKSPACE')
 DNS_UPDATES = getenv('DNS_UPDATES')
 
-DATA_DIR = f'{WORKSPACE}/../..'
+DATA_DIR = f'{WORKSPACE}/../../..'
 
 args_full = argv
 args = args_full[1:]
