@@ -15,8 +15,10 @@ DNSO_USER = getenv('DNSO_USER')
 DNSO_PASS = getenv('DNSO_PASS')
 MAIL_USER = getenv('MAIL_USER_OUTLOOK')
 MAIL_KEY = getenv('MAIL_PASS_OUTLOOK')
-DATA_DIR = getenv('JSON_DIR')
+WORKSPACE = getenv('GITHUB_WORKSPACE')
 DNS_UPDATES = getenv('DNS_UPDATES')
+
+DATA_DIR = f'{WORKSPACE}/../..'
 
 args_full = argv
 args = args_full[1:]
