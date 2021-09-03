@@ -1,0 +1,25 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0,15,30,45 * * * *'
+
+jobs:
+  sync:
+    name: DynDNS Update
+    runs-on: [self-hosted, ubuntu, pi]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Run DNS Update
+        env:
+          NOIP_USER: ${{ secrets.NOIP_USER }}
+          NOIP_PASS: ${{ secrets.NOIP_PASS }}
+          DNSO_USER: ${{ secrets.DNSO_USER }}
+          DNSO_PASS: ${{ secrets.DNSO_PASS }}
+          MAIL_USER_OUTLOOK: ${{ secrets.MAIL_USER_OUTLOOK }}
+          MAIL_PASS_OUTLOOK: ${{ secrets.MAIL_PASS_OUTLOOK }}
+          JSON_DIR: $GITHUB_WORKSPACE/../..
+          DNS_UPDATES: ${{ secrets.DNS_UPDATES }}
+        run: |
+          python3 dnsomatic.py
