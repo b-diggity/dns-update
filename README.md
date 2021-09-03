@@ -14,7 +14,6 @@ The following environment variables must be set:
 - DNSO_PASS => DNSOMATIC password html encoded
 - MAIL_USER_OUTLOOK => Outlook email account to send emails from and to
 - MAIL_PASS_OUTLOOK => Password of said email account
-- JSON_DIR => Defaults to the base directory of the self-hosted runner.  Directory to store the state JSON in
 - DNS_UPDATES => JSON of NOIP and DNSOMATIC entries to udpate
 
 EXAMPLE OF HTML ENCODING: @ == %40
