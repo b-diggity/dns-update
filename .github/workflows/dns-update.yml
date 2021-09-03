@@ -11,6 +11,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Install email
+        run: |
+          pip install --upgrade git+https://github.com/b-diggity/utilities.git@v0.0.3
+          
       - name: Run DNS Update
         env:
           NOIP_USER: ${{ secrets.NOIP_USER }}

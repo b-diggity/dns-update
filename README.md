@@ -5,7 +5,7 @@ DNSOMATIC - This tool provides an interface to udpating your IP for [OpenDNS](ht
 
 [NOIP](https://www.noip.com/) - This site allows you to manage dynamic DNS entries.  This can be for internal or external DNS entries.  For internal addresses, this script will the the leading internal IP for where the runner is installed.
 
-Email alerts will be sent when there are issues.  @outlook.com is the default email platform included in the script for source emails.
+Email alerts will be sent when there are issues.  @outlook.com is the default email platform included in the script for source emails. The outlook email function must be pip installed.
 
 The following environment variables must be set:
 - NOIP_USER => NOIP user name html encoded
