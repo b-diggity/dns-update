@@ -6,7 +6,7 @@ on:
 jobs:
   sync:
     # if: github.event.pull_request.merged == true
-    name: Sync Pi
+    name: Sync Repo
     runs-on: [self-hosted, ubuntu, pi]
     steps:
       - name: Checkout
