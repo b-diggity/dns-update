@@ -50,8 +50,7 @@ def get_public_address():
         if match(ip_r, pub.text) is not None:
             return pub.text
         else:
-            if verbose:
-                print(f'Failure in getting public IP:\n{pub.text}')
+            print(f'Failure in getting public IP:\n{pub.text}')
             exit(1)
 
 
